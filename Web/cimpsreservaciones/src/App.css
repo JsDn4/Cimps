@@ -1,0 +1,172 @@
+/* Variables */
+:root {
+  --color-primario: #0f132e;
+  --color-primario-100: #19274e;
+  --color-primario-200: #536d88;
+  --color-secundario: #b49b85;
+  --color-secundario-100: #eac195;
+
+  --fuente-primaria: "Roboto", sans-serif;
+}
+
+
+/* Estilos Generales */
+html {
+  box-sizing: inherit;
+  /*Fuente*/
+  font-family: var(--fuente-primaria);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--fuente-primaria);
+  font-weight: 400;
+  margin: 0;
+  text-align: center;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: var(--color-secundario);
+}
+
+a:hover {
+  color: var(--color-secundario-100);
+}
+
+/*Body background*/
+body {
+  background-color: var(--color-primario);
+  color: var(--color-secundario);
+}
+
+/* Estilos títulos */
+h1 {
+  font-size: 3.2rem;
+}
+
+h2 {
+  font-size: 2.8rem;
+}
+
+h3 {
+  font-size: 2.4rem;
+}
+
+h4,
+h5,
+h6 {
+  font-size: 2rem;
+}
+
+/*Utilidades*/
+.contenedor {
+  margin: 0 auto;
+  width: 90%;
+}
+
+.centrar-h-v {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.separacion-flex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+/*Botones*/
+.boton {
+  display: inline-block;
+  padding: 10px 20px;
+  color: #fff;
+  text-decoration: none;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.boton-verde {
+  background-color: #4caf50;
+}
+
+.boton-verde:hover {
+  background-color: #46a049;
+  color: #fff;
+}
+
+.boton-rojo {
+  background-color: #f44336;
+}
+
+.boton-rojo:hover {
+  background-color: #da190b;
+  color: #fff;
+}
+
+/*Header*/
+.header {
+  background-color: var(--color-primario);
+  padding: 1rem 0;
+  position: fixed;
+  width: 100%;
+  z-index: 100;
+}
+
+.contenedor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+/*Tipos de reservación vista*/
+.tabla {
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.tabla td,
+.tabla th {
+  text-align: center;
+  font-size: 1.2rem;
+  margin: 0;
+  text-transform: capitalize;
+  color: var(--color-secundario-100);
+}
+
+/*Formulario*/
+.formulario {
+  margin: 1rem 0;
+}
+
+.input-error {
+  border: 1px solid red;
+}
