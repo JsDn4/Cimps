@@ -1,21 +1,18 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { TipoReservacion } from "../types"
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { crearTipoReservacion } from "../helpers/crearTipoReservacion";
 import { actualizarTPRes } from "../helpers/actualizarTPRes";
 
 
 export const FormCrearActualizarTipoReservacion: React.FC = () => {
 
-    let id;
-    let descripcion;
-    let cantidadLugaresDisponibles;
-    let valor;
+    let id: string;
+    let descripcion: string;
+    let cantidadLugaresDisponibles: number;
+    let valor: number;
 
     const navigate = useNavigate();
-
-
-    const [submit, setSubmit] = useState<number>(0);
 
     try {
 
@@ -28,7 +25,7 @@ export const FormCrearActualizarTipoReservacion: React.FC = () => {
 
     } catch (error) {
 
-        id = 0
+        id = ''
         descripcion = ''
         cantidadLugaresDisponibles = 0
         valor = 0
@@ -50,43 +47,44 @@ export const FormCrearActualizarTipoReservacion: React.FC = () => {
         });
     }
 
-    const handleSubmit = async (event: React.FormEvent) => {
+    /**
+     * Submit del formulario
+     */
+
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        //Verificar si es crear o actualizar
+        try {
 
-        setSubmit((submitPrevio) => submitPrevio + 1);
-    }
+            let res;
 
-    useEffect(() => {
+            if (tipoReservacion !== undefined && tipoReservacion.id !== '') {
+                res = await actualizarTPRes(
+                    tipoReservacion.id as string,
+                    tipoReservacion.descripcion as string,
+                    tipoReservacion.cantidadLugaresDisponibles as number,
+                    Number(tipoReservacion.valor) as number
+                );
 
-        const redirect = () => {
-            navigate('/Reservaciones/TipoDeReservacion');
-        }
-
-        const handleEnviarData = async () => {
-
-            if (tipoReservacion.id !== '0') {
-                await actualizarTPRes(tipoReservacion);
             } else {
-                await crearTipoReservacion(tipoReservacion);
+                res = await crearTipoReservacion(
+                    tipoReservacion.descripcion as string,
+                    Number(tipoReservacion.cantidadLugaresDisponibles) as number,
+                );
             }
 
-            redirect();
+            if (res) {
+                navigate('/Reservaciones/TipoDeReservacion');
+            }
 
-            return
+        } catch (error) {
+
+            console.log(error);
 
         }
 
-        const handleFormSubmit = async () => {
-            if (submit === 1) {
-                await handleEnviarData();
-            } else if (submit > 1) {
-                redirect();
-            }
-        }
-
-        handleFormSubmit();
-
-    }, [navigate, submit, tipoReservacion])
+    };
 
 
 
@@ -124,18 +122,6 @@ export const FormCrearActualizarTipoReservacion: React.FC = () => {
                                 id='cantidadLugaresDisponibles'
                                 placeholder='Cantidad de lugares disponibles'
                                 value={Number(tipoReservacion.cantidadLugaresDisponibles)}
-                                onChange={handleInputChange}
-                            />
-                        </div>
-
-                        <div className='contenedor-input'>
-                            <label htmlFor='valor'>Valor</label>
-                            <input
-                                type='number'
-                                name='valor'
-                                id='valor'
-                                placeholder='Valor'
-                                value={Number(tipoReservacion.valor)}
                                 onChange={handleInputChange}
                             />
                         </div>

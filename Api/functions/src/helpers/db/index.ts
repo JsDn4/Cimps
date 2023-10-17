@@ -12,12 +12,12 @@ export const consultarReservacionesDelDia = async () => {
 
         const reservacionesRef = await db.collection('reservaciones');
 
-        //Hora 1 am
+        //Hora 0 am
         const diaHoy = new Date();
-        diaHoy.setHours(1, 0, 0, 0);
+        diaHoy.setHours(10, 0, 0, 0);
 
         const limite = new Date();
-        limite.setHours(23, 59, 59, 0);
+        limite.setHours(23, 59, 59, 999);
 
         const query = await reservacionesRef
             .where('fechaHora', '>', Timestamp.fromDate(diaHoy))
@@ -63,13 +63,31 @@ export const consultarTiposDeReservacion = async () => {
     }
 }
 
-export const agregarTipoDeReservacion = async (tipoDeReservacion: TipoReservacion) => {
+export const agregarTipoDeReservacion = async (
+    descripcion: string,
+    cantidadLugaresDisponibles: number,
+) => {
 
     try {
 
         const tipoDeReservacionRef = await db.collection('tipoReservacion');
 
-        const query = await tipoDeReservacionRef.add(tipoDeReservacion);
+        const valorMaximoQuery = await tipoDeReservacionRef
+            .orderBy('valor', 'desc')
+            .limit(1)
+
+
+        const valorMaximo = await valorMaximoQuery.get();
+
+        const query: boolean = await tipoDeReservacionRef.add({
+            descripcion,
+            cantidadLugaresDisponibles,
+            valor: valorMaximo.docs[0].data().valor + 1
+        }).then(() => {
+            return true;
+        }).catch(() => {
+            return false;
+        });
 
         return query;
     } catch (error) {
@@ -77,16 +95,52 @@ export const agregarTipoDeReservacion = async (tipoDeReservacion: TipoReservacio
     }
 }
 
-export const actualizarTipoDeReservacion = async (tipoDeReservacion: TipoReservacion) => {
+export const actualizarTipoDeReservacion = async (
+    id: string,
+    descripcion: string,
+    cantidadLugaresDisponibles: number,
+    valor: number
+) => {
 
     try {
-        if (!tipoDeReservacion.id) {
+        if (!id) {
             throw new Error('El tipo de reservación no tiene un ID válido');
         }
 
-        const tipoDeReservacionRef = await db.collection('tipoReservacion').doc(tipoDeReservacion.id);
+        const tipoDeReservacionRef = await db.collection('tipoReservacion').doc(id);
 
-        const query = await tipoDeReservacionRef.update({ ...tipoDeReservacion })
+        const query = await tipoDeReservacionRef.update({
+            descripcion,
+            cantidadLugaresDisponibles,
+            valor
+        })
+            .then(() => {
+                return true;
+            })
+            .catch(() => {
+                return false;
+            });
+
+        return query;
+
+    } catch (error) {
+        return 'Hubo un error en la base de datos';
+    }
+}
+
+export const eliminarTipoDeReservacion = async (id: string) => {
+
+    try {
+
+        const numeroReservaciones = await consultarTiposDeReservacion();
+
+        if (numeroReservaciones.length === 1) {
+            throw new Error('No se puede eliminar el último tipo de reservación');
+        }
+
+        const tipoDeReservacionRef = await db.collection('tipoReservacion').doc(id);
+
+        const query = await tipoDeReservacionRef.delete()
             .then(() => {
                 return true;
             })

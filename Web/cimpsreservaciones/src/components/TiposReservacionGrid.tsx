@@ -2,6 +2,7 @@ import { obtenerTiposReservaciones } from '../helpers/obtenerReservaciones';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { TipoReservacion } from '../types';
+import { eliminarTPRes } from '../helpers/eliminarTPRes';
 
 
 export const TiposReservacionGrid: React.FC = () => {
@@ -17,15 +18,34 @@ export const TiposReservacionGrid: React.FC = () => {
 
     //Eliminar tipo de reservacion
     //Recibir el evento del boton eliminar
-    const handleConfirmarEliminar = (event: React.MouseEvent) => {
+    const handleConfirmarEliminar = async (event: React.MouseEvent) => {
         event.preventDefault();
 
-        const confirmacion = window.confirm('¿Está seguro de eliminar el tipo de reservacion?');
+        try {
 
-        if (confirmacion) {
-            console.log('Se elimino el tipo de reservacion');
+            const id = event.currentTarget.id;
+            const confirmacion = window.confirm('¿Está seguro de eliminar el tipo de reservación?');
 
-            window.location.reload();
+            if (confirmacion) {
+                //Eliminar
+                const resp = await eliminarTPRes(id);
+
+
+                //Actualizar la tabla
+                const resp2 = await fetchTipoReservacion();
+                setTiposReservacion(resp2);
+
+                return resp;
+
+                // console.log(resp);
+            }
+
+
+
+        } catch (error) {
+
+            return error;
+
         }
     }
 
@@ -55,6 +75,7 @@ export const TiposReservacionGrid: React.FC = () => {
                                 <td>{tipoReservacion.valor}</td>
                                 <td className='separacion-flex'>
                                     <button
+                                        id={tipoReservacion.id}
                                         className='boton boton-rojo'
                                         onClick={handleConfirmarEliminar}
                                     >

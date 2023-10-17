@@ -2,7 +2,13 @@ import { onRequest } from "firebase-functions/v2/https";
 // import * as logger from "firebase-functions/logger";
 import * as express from 'express';
 import * as cors from 'cors';
-import { agregarTipoDeReservacion, consultarReservacionesDelDia, consultarTiposDeReservacion } from "./helpers/db";
+import {
+    actualizarTipoDeReservacion,
+    agregarTipoDeReservacion,
+    consultarReservacionesDelDia,
+    consultarTiposDeReservacion,
+    eliminarTipoDeReservacion
+} from "./helpers/db";
 
 
 const backendDev = express();
@@ -50,13 +56,26 @@ backendDev.get('/TiposDeReservacion', async (req, res) => {
 backendDev.post('/AgregarTipoReservacion', async (req, res) => {
 
     try {
-        const { descripcion, cantidadLugaresDisponibles, valor } = req.body;
+        const { descripcion, cantidadLugaresDisponibles } = req.body;
 
-        const fetch = await agregarTipoDeReservacion({ descripcion, cantidadLugaresDisponibles, valor });
+        const fetch: boolean | string = await agregarTipoDeReservacion(descripcion, cantidadLugaresDisponibles);
 
-        res.status(200).send({
-            fetch
-        });
+        if (fetch === false) {
+            res.status(400).send('Ocurrio un error al agregar el tipo de reservacion');
+            return;
+        } else if (fetch === true) {
+
+            res.status(200).send({
+                fetch
+            });
+
+        } else {
+
+            res.status(400).send({
+                fetch
+            });
+
+        }
 
     } catch (error) {
         res.status(500).send({
@@ -66,6 +85,75 @@ backendDev.post('/AgregarTipoReservacion', async (req, res) => {
 
 });
 
+
+backendDev.post('/ActualizarTipoReservacion', async (req, res) => {
+
+    try {
+        const { id, descripcion, cantidadLugaresDisponibles, valor } = req.body;
+
+        const fetch: boolean | string = await actualizarTipoDeReservacion(
+            id,
+            descripcion,
+            cantidadLugaresDisponibles,
+            valor
+        );
+
+        if (fetch === false) {
+            res.status(400).send('Ocurrio un error al agregar el tipo de reservacion');
+            return;
+        } else if (fetch === true) {
+
+            res.status(200).send({
+                fetch
+            });
+
+        } else {
+
+            res.status(400).send({
+                fetch
+            });
+
+        }
+
+    } catch (error) {
+        res.status(500).send({
+            mensaje: 'Hubo un error en la base de datos'
+        });
+    }
+
+});
+
+backendDev.post('/EliminarTipoReservacion', async (req, res) => {
+
+    try {
+        const { id } = req.body;
+
+        const fetch: boolean | string = await eliminarTipoDeReservacion(id);
+
+        if (fetch === false) {
+            res.status(400).send('Ocurrio un error al agregar el tipo de reservacion');
+            return;
+        } else if (fetch === true) {
+
+            res.status(200).send({
+                fetch
+            });
+
+        } else {
+
+            res.status(400).send({
+                fetch
+            });
+
+        }
+
+    } catch (error) {
+        res.status(500).send({
+            mensaje: 'Hubo un error en la base de datos'
+        });
+    }
+
+})
 
 exports.webBackend = onRequest(backendDev);
 
