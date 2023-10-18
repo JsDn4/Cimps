@@ -1,9 +1,10 @@
 import { Header } from "../components/Header"
+import { rutas } from "../types"
 
 export const ReservacionesView: React.FC = () => {
 
-    const rutasHeader = [
-        { titulo: "Menu", subruta: "Reservaciones", tituloVista: "Menu" },
+    const rutasHeader: rutas = [
+        { titulo: "Menu", tituloVista: "Menu" },
         { titulo: "TipoDeReservacion", subruta: "Reservaciones", tituloVista: "Tipo de reservacion" }
     ]
 

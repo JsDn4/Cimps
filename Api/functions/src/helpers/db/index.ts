@@ -1,45 +1,17 @@
 import { initializeApp } from "firebase-admin/app";
-import { Timestamp, getFirestore } from "firebase-admin/firestore";
+import { getFirestore } from "firebase-admin/firestore";
 // import * as logger from "firebase-functions/logger";
 
 initializeApp();
 
 const db = getFirestore();
 
-export const consultarReservacionesDelDia = async () => {
+//Tipo de reservacion funciones
 
-    try {
-
-        const reservacionesRef = await db.collection('reservaciones');
-
-        //Hora 0 am
-        const diaHoy = new Date();
-        diaHoy.setHours(10, 0, 0, 0);
-
-        const limite = new Date();
-        limite.setHours(23, 59, 59, 999);
-
-        const query = await reservacionesRef
-            .where('fechaHora', '>', Timestamp.fromDate(diaHoy))
-            .where('fechaHora', '<', Timestamp.fromDate(limite))
-            .get();
-
-        const reservaciones = query.docs.map(doc => {
-            return {
-                id: doc.id,
-                ...doc.data()
-            }
-        });
-
-        return reservaciones;
-    } catch (error) {
-        return 'Hubo un error en la base de datos';
-    }
-
-
-}
-
-
+/**
+ * 
+ * @returns {Array<TipoReservacion> | string}
+ */
 export const consultarTiposDeReservacion = async () => {
 
     try {
@@ -63,6 +35,13 @@ export const consultarTiposDeReservacion = async () => {
     }
 }
 
+
+/**
+ * 
+ * @param descripcion : string // Descripcion del tipo de reservacion
+ * @param cantidadLugaresDisponibles : number // Cantidad de lugares disponibles
+ * @returns {boolean | string}
+ */
 export const agregarTipoDeReservacion = async (
     descripcion: string,
     cantidadLugaresDisponibles: number,
@@ -95,6 +74,15 @@ export const agregarTipoDeReservacion = async (
     }
 }
 
+
+/**
+ * 
+ * @param id : string // ID del documento a actualizar
+ * @param descripcion : string // Descripcion del tipo de reservacion
+ * @param cantidadLugaresDisponibles : number // Cantidad de lugares disponibles
+ * @param valor : number // Valor del tipo de reservacion(Este valor no cambia)
+ * @returns {boolean | string}
+ */
 export const actualizarTipoDeReservacion = async (
     id: string,
     descripcion: string,
@@ -128,6 +116,11 @@ export const actualizarTipoDeReservacion = async (
     }
 }
 
+/**
+ * 
+ * @param id : string // ID del documento a eliminar
+ * @returns {boolean | string}
+ */
 export const eliminarTipoDeReservacion = async (id: string) => {
 
     try {
@@ -155,3 +148,110 @@ export const eliminarTipoDeReservacion = async (id: string) => {
     }
 }
 
+//Funciones de menu
+export const consultarMenu = async () => {
+
+    try {
+
+        const menuRef = await db.collection('menu');
+
+        const query = await menuRef.get();
+
+        const menu = query.docs.map(doc => {
+            return {
+                id: doc.id,
+                descripcionPlatillo: doc.data().descripcionPlatillo,
+                precio: doc.data().precio,
+                imagen: doc.data().imagen
+            }
+        });
+
+        return menu;
+    } catch (error) {
+        return 'Hubo un error en la base de datos';
+    }
+}
+
+
+export const agregarPlatillo = async (
+    descripcionPlatillo: string,
+    precio: number,
+    imagen: string
+) => {
+
+    try {
+
+        const menuRef = await db.collection('menu');
+
+        const query: boolean = await menuRef.add({
+            descripcionPlatillo,
+            precio,
+            imagen
+        }).then(() => {
+            return true;
+        }).catch(() => {
+            return false;
+        });
+
+        return query;
+    } catch (error) {
+        return 'Hubo un error en la base de datos';
+    }
+}
+
+export const actualizarPlatillo = async (
+    id: string,
+    descripcionPlatillo: string,
+    precio: number,
+    imagen: string
+) => {
+
+    try {
+        if (!id) {
+            throw new Error('El platillo no tiene un ID válido');
+        }
+
+        const menuRef = await db.collection('menu').doc(id);
+
+        const query = await menuRef.update({
+            descripcionPlatillo,
+            precio,
+            imagen
+        })
+            .then(() => {
+                return true;
+            })
+            .catch((err) => {
+                return {
+                    err: -1,
+                    message: err
+                };
+            });
+
+        return query;
+
+    } catch (error) {
+        return 'Hubo un error en la base de datos';
+    }
+}
+
+export const eliminarPlatillo = async (id: string) => {
+
+    try {
+
+        const menuRef = await db.collection('menu').doc(id);
+
+        const query = await menuRef.delete()
+            .then(() => {
+                return true;
+            })
+            .catch(() => {
+                return false;
+            });
+
+        return query;
+
+    } catch (error) {
+        return 'Hubo un error en la base de datos';
+    }
+}

@@ -1,10 +1,11 @@
 import { FormCrearActualizarTipoReservacion } from "../components/FormCrearActualizarTipoReservacion"
 import { Header } from "../components/Header"
+import { rutas } from "../types"
 
 
 export const CrearActualizarTPReservacion: React.FC = () => {
 
-    const rutas = [
+    const rutasHeader: rutas = [
         {
             titulo: 'Reservaciones',
             tituloVista: 'Reservaciones'
@@ -13,7 +14,7 @@ export const CrearActualizarTPReservacion: React.FC = () => {
 
     return (
         <>
-            <Header rutas={rutas} />
+            <Header rutas={rutasHeader} />
 
             <FormCrearActualizarTipoReservacion />
 

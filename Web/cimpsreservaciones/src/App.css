@@ -89,8 +89,8 @@ h6 {
 .separacion-flex {
   display: flex;
   justify-content: center;
-  align-items: center;
   gap: 1rem;
+  align-items: center;
 }
 
 /*Botones*/
@@ -160,6 +160,12 @@ h6 {
   margin: 0;
   text-transform: capitalize;
   color: var(--color-secundario-100);
+}
+
+.img-tabla {
+  width: 5rem;
+  height: 5rem;
+  object-fit: cover;
 }
 
 /*Formulario*/
