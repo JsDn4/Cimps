@@ -1,12 +1,18 @@
 import { initializeApp } from 'firebase-admin/app';
 import { Timestamp, getFirestore } from 'firebase-admin/firestore';
 import * as logger from 'firebase-functions/logger';
-import { horarios } from '../../types';
+import { MenuCompleto, horarios, tipoReservaciones } from '../../types';
 
 initializeApp();
 
 const db = getFirestore();
 
+
+/**
+ * 
+ * @param telefono : string //Numero de telefono tomado desde los parametros del bot
+ * @returns {map | string} //Mapa con los datos de la reservacion activa o un string con el error
+ */
 export const consultarReservacionActiva = async (telefono: string) => {
 
     try {
@@ -28,6 +34,12 @@ export const consultarReservacionActiva = async (telefono: string) => {
 }
 
 
+/**
+ * 
+ * @param tipoReservacion : number //Tipo de reservacion tomado desde los parametros del bot
+ * @param fecha : string //Fecha tomada desde los parametros del bot
+ * @returns {horarios | string} //Mapa con los datos de la reservacion activa o un string con el error
+ */
 export const consultarFechasDisponibles = async (tipoReservacion: Number, fecha: string) => {
 
     try {
@@ -70,26 +82,6 @@ export const consultarFechasDisponibles = async (tipoReservacion: Number, fecha:
         const fechasDisponibles = horarios.map((horario) => {
 
             //Sumar el numero de reservaciones por hora, en el campo de cantidadLugaresDispobibles
-            // const reservacionesPorHora = query.docs.filter((doc) => {
-
-            //     const horaReservacion = doc.data().fechaHora.
-            //         toDate().
-            //         toLocaleTimeString(
-            //             'en-US',
-            //             {
-            //                 timeZone: 'America/Mazatlan',
-            //                 hour: '2-digit',
-            //                 minute: '2-digit',
-            //                 second: '2-digit',
-            //                 hour12: false
-            //             }
-            //         );
-
-            //     return horaReservacion === horario.hora;
-
-            // }).length;
-
-            //Sumar el numero de reservaciones por hora, en el campo de cantidadLugaresDispobibles
             //Sumar el campo de cantidadLugaresDispobibles
             const reservacionesPorHora: number = query.docs.reduce((acumulador, doc) => {
 
@@ -105,10 +97,6 @@ export const consultarFechasDisponibles = async (tipoReservacion: Number, fecha:
                             hour12: false
                         }
                     );
-
-                logger.info(`Horario: ${JSON.stringify(horario)}`)
-                logger.info(`Hora reservacion: ${horaReservacion}`)
-                logger.info(acumulador)
 
                 if (horaReservacion === horario.hora) {
                     return acumulador + doc.data().cantidadLugaresReservados;
@@ -144,6 +132,16 @@ export const consultarFechasDisponibles = async (tipoReservacion: Number, fecha:
 
 }
 
+
+/**
+ * 
+ * @param fecha : string //Fecha calculada con la hora de la reservacion
+ * @param numeroTelefonoReservacion : string //Numero de telefono tomado desde los parametros del bot
+ * @param nombreCompletoReservacion : string //Nombre completo tomado desde los parametros del bot
+ * @param tipoReservacionReservacion : number //Tipo de reservacion tomado desde los parametros del bot
+ * @param cantidadLugaresReservados : number //Cantidad de lugares reservados tomado desde los parametros del bot
+ * @returns {string | {err: boolean, mensaje: string}} //Id de la reservacion o un objeto con el error
+ */
 export const crearReservacion = async (
     fecha: string,
     numeroTelefonoReservacion: string,
@@ -168,8 +166,6 @@ export const crearReservacion = async (
 
         //Parseo de la fecha a Date
         const fechaDate = new Date(fecha);
-
-
 
         //Crear el documento
 
@@ -196,6 +192,60 @@ export const crearReservacion = async (
             mensaje: 'Hubo un error en la base de datos'
         };
 
+    }
+
+}
+
+/**
+ * 
+ * @returns {tipoReservaciones | string} //Mapa con los datos de los tipos de reservacion o un string con el error
+ */
+export const consultarTipoReservacion = async () => {
+
+    try {
+
+        const tipoReservacionRef = await db.collection('tipoReservacion');
+
+        const query = await tipoReservacionRef.get();
+
+        const tipoReservacion: tipoReservaciones = query.docs.map(doc => {
+            return {
+                valor: Number(doc.data().valor),
+                descripcion: doc.data().descripcion,
+                cantidadLugaresDisponibles: Number(doc.data().cantidadLugaresDisponibles)
+            };
+        });
+
+        return tipoReservacion;
+
+    } catch (error) {
+        return 'Hubo un error en la base de datos';
+    }
+
+}
+
+//Funcion de mostrar menu
+
+export const consultarMenu = async () => {
+
+    try {
+
+        const menuRef = await db.collection('menu');
+
+        const query = await menuRef.get();
+
+        const menu: MenuCompleto = query.docs.map(doc => {
+            return {
+                descripcionPlatillo: doc.data().descripcionPlatillo,
+                imagen: doc.data().imagen,
+                precio: Number(doc.data().precio)
+            };
+        });
+
+        return menu;
+
+    } catch (error) {
+        return 'Hubo un error en la base de datos';
     }
 
 }

@@ -1,29 +1,5 @@
-import { Payload, PayloadArray } from "../../types";
+import { Payload, PayloadArray, Respuesta } from "../../types";
 
-interface Plataforma {
-    platform: string;
-    text: {
-        text: string[];
-    };
-}
-
-
-interface InlineKeyboard {
-    payload: {
-        telegram: {
-            reply_markup: {
-                inline_keyboard: Array<PayloadArray> | PayloadArray;
-            };
-            text: string;
-        };
-    };
-    platform: string;
-}
-
-interface Respuesta {
-    fulfillmentText: string;
-    fulfillmentMessages: (Plataforma | InlineKeyboard)[];
-}
 
 /**
  * Genera una respuesta básica de Dialogflow.
@@ -112,6 +88,20 @@ export const inLineKeyboard1x1 = (respuesta: Respuesta, texto: string, opciones:
                 text: texto,
             },
         },
+    });
+
+    return respuesta;
+}
+
+export const card = (respuesta: Respuesta, titulo: string, subtitulo: string, imagen: string): Respuesta => {
+
+    respuesta.fulfillmentMessages.push({
+        platform: 'TELEGRAM',
+        card: {
+            title: titulo,
+            subtitle: subtitulo,
+            imageUri: imagen,
+        }
     });
 
     return respuesta;

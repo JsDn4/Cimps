@@ -3,30 +3,33 @@ import { onRequest } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import * as queries from "./helpers/db/queries";
 import * as res from "./helpers/res/respuestas";
-import { horarios } from "./types";
+import { MenuCompleto, Respuesta, horarios, tipoReservaciones } from "./types";
 
 export const app = onRequest(async (request, response) => {
 
     try {
 
+
+
         if (request.method === "GET") {
             response.status(403).send("Ups! No cuenta con permiso para acceder a este recurso.");
         } else if (request.method === "POST") {
 
+            let result: Respuesta;
+
             const context = request.body.queryResult.intent.displayName;
-            let result;
 
             switch (context) {
 
                 case 'Default Welcome Intent':
 
                     result = res.respuestaDialogflow(
-                        '¡Hola! soy un bot dedicado a las operaciones basicas de un restaurante.'
+                        '¡Hola! soy un bot dedicado a las operaciones básicas de un restaurante.'
                     );
 
                     res.agregarTexto(
                         result,
-                        'Puedes pedirme que te muestre el menú, hacer una reservacion'
+                        'Puedes pedirme que te muestre el menú, hacer una reservación'
                     );
 
                     res.agregarInlineKeyboard(
@@ -44,6 +47,8 @@ export const app = onRequest(async (request, response) => {
                         ]
                     );
 
+                    response.status(200).send(result);
+
                     break;
 
                 /**
@@ -52,16 +57,20 @@ export const app = onRequest(async (request, response) => {
                 case 'reservacion':
 
                     result = res.respuestaDialogflow(
-                        'Por favor escrba su primer nombre y un apellido'
+                        'Por favor escriba su primer nombre y un apellido'
                     );
+
+                    response.status(200).send(result);
 
                     break;
 
                 case 'reservacionNombreCompleto':
 
                     result = res.respuestaDialogflow(
-                        'Muy bien, ahora continuaremos con su numero telefonico'
+                        'Muy bien, ahora continuaremos con su numero telefónico'
                     );
+
+                    response.status(200).send(result);
 
                     break;
 
@@ -80,7 +89,7 @@ export const app = onRequest(async (request, response) => {
 
                         res.agregarTexto(
                             result,
-                            'Lo siento. El numero telefonico debe tener 10 digitos, por favor intente de nuevo.'
+                            'Lo siento. El numero telefónico debe tener 10 dígitos, por favor intente de nuevo.'
                         );
 
                     } else {
@@ -94,29 +103,28 @@ export const app = onRequest(async (request, response) => {
 
                             res.agregarTexto(result, 'Muy bien, ahora continuaremos con el tipo de reservacion');
 
-                            res.agregarInlineKeyboard(
-                                result,
-                                '¿Qué tipo de reservacion desea?',
-                                [
-                                    {
-                                        text: 'clasica',
-                                        callback_data: 'tipo1'
-                                    },
-                                    {
-                                        text: 'exclusiva',
-                                        callback_data: 'tipo2'
-                                    },
-                                    {
-                                        text: 'especial',
-                                        callback_data: 'tipo3'
-                                    }
-                                ]
-                            );
+                            const tipoReservaciones: tipoReservaciones | string = await queries.consultarTipoReservacion();
+
+
+                            if (typeof tipoReservaciones !== 'string') {
+                                res.agregarInlineKeyboard(
+                                    result,
+                                    '¿Qué tipo de reservacion desea?',
+                                    tipoReservaciones.map((tipo) => ({
+                                        text: tipo.descripcion,
+                                        callback_data: `tipo ${tipo.valor}`
+                                    }))
+                                );
+                            } else {
+
+                                res.agregarTexto(result, tipoReservaciones);
+
+                            }
 
                         }
 
                     }
-
+                    response.status(200).send(result);
 
                     break;
 
@@ -153,6 +161,8 @@ export const app = onRequest(async (request, response) => {
                             callback_data: `fecha ${fecha}`
                         }))
                     );
+
+                    response.status(200).send(result);
 
                     break;
 
@@ -195,13 +205,15 @@ export const app = onRequest(async (request, response) => {
 
                     }
 
+                    response.status(200).send(result);
+
                     break;
 
                 case 'reservacionHora':
 
                     result = res.respuestaDialogflow('Muy bien, Continuaremos con el numero de lugares a reservar');
 
-                    res.agregarTexto(result, '¿Cuantos lugares desea reservar?');
+                    res.agregarTexto(result, '');
 
                     const tipoReservacionResHora: number = request.body.queryResult.outputContexts[3].parameters.tipoReservacion;
                     const fechaReservacionResHora: string = request.body.queryResult.outputContexts[3].parameters.fecha;
@@ -235,6 +247,8 @@ export const app = onRequest(async (request, response) => {
                             res.agregarTexto(result, 'No entro');
                         }
                     }
+
+                    response.status(200).send(result);
 
                     break;
 
@@ -281,9 +295,9 @@ export const app = onRequest(async (request, response) => {
                     //Verificar que el numero enviado no sea mayor a los lugares disponibles
 
                     if (typeof resultadoCreacion === 'string') {
-                        res.agregarTexto(result, 'Su reservacion ha sido creada con exito.');
+                        res.agregarTexto(result, 'Su reservacion ha sido creada con éxito.');
                         res.agregarTexto(result, `Su ID de reservacion es: ${resultadoCreacion}`);
-                        res.agregarTexto(result, 'Recuerda que es importante guardarlo, se pedira al momento de entrar al restaurante.');
+                        res.agregarTexto(result, 'Recuerda que es importante guardarlo, se pedirá al momento de entrar al restaurante.');
                     } else if (resultadoCreacion.err) {
                         res.agregarTexto(result, 'Lo siento, ha ocurrido un error en nuestra base de datos.');
                         res.agregarTexto(result, resultadoCreacion.mensaje);
@@ -294,13 +308,43 @@ export const app = onRequest(async (request, response) => {
                         res.agregarTexto(result, 'Lo siento, ha ocurrido un error en nuestra base de datos.');
                         res.agregarTexto(result, resultadoCreacion);
                     } else {
-                        res.agregarTexto(result, 'Su reservacion ha sido creada con exito.');
+                        res.agregarTexto(result, 'Su reservacion ha sido creada con éxito.');
                         res.agregarTexto(result, `Su ID de reservacion es: ${resultadoCreacion}`);
-                        res.agregarTexto(result, 'Recuerda que es importante guardarlo, se pedira al momento de entrar al restaurante.');
+                        res.agregarTexto(result, 'Recuerda que es importante guardarlo, se pedirá al momento de entrar al restaurante.');
                     }
 
+                    response.status(200).send(result);
 
                     break;
+
+                case 'verMenu':
+
+                    result = res.respuestaDialogflow('Muy bien, aqui esta nuestro menu');
+
+                    const menu: MenuCompleto | string = await queries.consultarMenu();
+
+                    if (typeof menu === 'string') {
+
+                        res.agregarTexto(result, menu);
+
+                    } else {
+
+                        menu.forEach((platillo) => {
+                            logger.info(platillo);
+                            res.card(
+                                result,
+                                platillo.descripcionPlatillo,
+                                `$ ${platillo.precio.toString()}`,
+                                platillo.imagen
+                            );
+                        });
+
+                    }
+
+                    response.status(200).send(result);
+
+                    break;
+
 
                 case 'Default Fallback Intent':
 
@@ -311,11 +355,13 @@ export const app = onRequest(async (request, response) => {
                     res.agregarTexto(result, 'Lo siento, no entiendo lo que quieres decir.');
                     res.agregarTexto(result, `Tu mensaje fue: ${queryText}`);
 
+                    response.status(200).send(result);
+
                     break;
 
             }
 
-            response.status(200).send(result);
+
 
         }
 
